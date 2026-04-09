@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-// Web Speech API types not in lib.dom.d.ts for all environments
 interface ISpeechRecognition extends EventTarget {
   continuous: boolean
   interimResults: boolean
@@ -50,13 +49,13 @@ export default function SpeechStep({
   stepNumber,
   totalSteps,
   heading,
-  buttonLabel,
   onComplete,
 }: SpeechStepProps) {
   const [listening, setListening] = useState(false)
   const [transcript, setTranscript] = useState('')
-  const [hasSpeech, setHasSpeech] = useState(false)
+  const [pressed, setPressed] = useState(false)
   const recognitionRef = useRef<ISpeechRecognition | null>(null)
+  const transcriptRef = useRef('')
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop()
@@ -65,11 +64,13 @@ export default function SpeechStep({
 
   const startListening = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-
     if (!SR) {
       alert('Speech recognition is not supported in this browser. Try Chrome.')
       return
     }
+
+    transcriptRef.current = ''
+    setTranscript('')
 
     const recognition = new SR()
     recognition.continuous = true
@@ -81,17 +82,12 @@ export default function SpeechStep({
       for (let i = 0; i < event.results.length; i++) {
         full += event.results[i][0].transcript
       }
+      transcriptRef.current = full
       setTranscript(full)
-      if (full.trim().length > 0) setHasSpeech(true)
     }
 
-    recognition.onend = () => {
-      setListening(false)
-    }
-
-    recognition.onerror = () => {
-      setListening(false)
-    }
+    recognition.onend = () => setListening(false)
+    recognition.onerror = () => setListening(false)
 
     recognitionRef.current = recognition
     recognition.start()
@@ -99,94 +95,134 @@ export default function SpeechStep({
   }, [])
 
   useEffect(() => {
-    return () => {
-      recognitionRef.current?.stop()
-    }
+    return () => { recognitionRef.current?.stop() }
   }, [])
 
-  const toggleListening = () => {
-    if (listening) {
-      stopListening()
-    } else {
-      startListening()
+  const handlePointerDown = () => {
+    setPressed(true)
+    startListening()
+  }
+
+  const handlePointerUp = () => {
+    setPressed(false)
+    stopListening()
+    if (transcriptRef.current.trim().length > 0) {
+      onComplete(transcriptRef.current)
     }
   }
 
+  const handlePointerLeave = () => {
+    if (pressed) handlePointerUp()
+  }
+
   return (
-    <div className="flex flex-col items-center justify-between h-dvh w-full px-6 py-10">
-      <div className="flex flex-col items-center gap-3 text-center pt-8">
-        <p className="text-xs font-semibold tracking-widest uppercase text-stone-400">
+    <div
+      className="relative flex flex-col items-center h-dvh w-full overflow-hidden"
+      style={{ background: '#f3ebe0' }}
+    >
+      {/* Glow ellipse */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        aria-hidden
+      >
+        <div
+          className="w-[566px] h-[566px] rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(212,85,21,0.22) 0%, rgba(243,235,224,0) 68%)',
+          }}
+        />
+      </div>
+
+      {/* Header */}
+      <div className="relative z-10 flex flex-col items-center text-center px-5 pt-20 gap-3">
+        <p className="text-xs font-semibold tracking-widest uppercase text-[rgba(34,21,9,0.45)]">
           Step {stepNumber} of {totalSteps}
         </p>
-        <h1 className="text-3xl font-semibold text-stone-800 leading-snug max-w-xs">
+        <h1
+          className="font-semibold leading-tight"
+          style={{ color: '#221509', fontSize: 36 }}
+        >
           {heading}
         </h1>
       </div>
 
-      <div className="flex flex-col items-center gap-8 w-full">
-        {/* Transcript area */}
-        <div className="w-full min-h-24 rounded-2xl bg-stone-100 px-5 py-4 flex items-start">
-          {transcript ? (
-            <p className="text-stone-700 text-base leading-relaxed">{transcript}</p>
-          ) : (
-            <p className="text-stone-400 text-base italic">
-              {listening ? 'Listening…' : 'Tap the mic and speak'}
-            </p>
-          )}
-        </div>
+      {/* Subtitle */}
+      <p
+        className="relative z-10 text-center font-medium text-base px-10 mt-4 leading-relaxed"
+        style={{ color: 'rgba(34,21,9,0.8)' }}
+      >
+        Hold on to the button to start talking. Let it go to put your words out
+        into the world.
+      </p>
 
-        {/* Mic button */}
-        <button
-          onClick={toggleListening}
-          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
-            listening
-              ? 'bg-red-100 ring-4 ring-red-300 ring-offset-2 ring-offset-stone-50'
-              : 'bg-stone-800'
-          }`}
-          aria-label={listening ? 'Stop recording' : 'Start recording'}
+      {/* Transcript */}
+      {transcript && (
+        <div className="relative z-10 mx-6 mt-6 w-[calc(100%-3rem)] rounded-2xl bg-white/50 px-5 py-4">
+          <p
+            className="text-base leading-relaxed"
+            style={{ color: '#221509' }}
+          >
+            {transcript}
+          </p>
+        </div>
+      )}
+
+      {!transcript && listening && (
+        <p
+          className="relative z-10 mt-6 text-sm font-medium"
+          style={{ color: 'rgba(34,21,9,0.5)' }}
         >
-          {listening ? (
-            <span className="relative flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500" />
+          Listening…
+        </p>
+      )}
+
+      {/* 3D Hold button */}
+      <div className="absolute bottom-24 flex flex-col items-center">
+        <button
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          className="relative select-none touch-none outline-none"
+          style={{ width: 230, height: 230 }}
+          aria-label={listening ? 'Release to submit' : 'Hold to speak'}
+        >
+          {/* Back shadow layer */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: 220,
+              height: 220,
+              left: 5,
+              top: pressed ? 14 : 18,
+              background: '#8B3208',
+              filter: 'blur(3px)',
+              opacity: 0.7,
+              transition: 'top 80ms ease',
+            }}
+          />
+          {/* Front face */}
+          <div
+            className="absolute inset-0 rounded-full flex items-center justify-center"
+            style={{
+              transform: pressed ? 'translateY(6px)' : 'translateY(0)',
+              background:
+                'radial-gradient(circle at 38% 32%, #F08040 0%, #D45010 55%, #B03808 100%)',
+              boxShadow: pressed
+                ? '0 2px 10px rgba(0,0,0,0.25)'
+                : '0 10px 28px rgba(0,0,0,0.22)',
+              transition: 'transform 80ms ease, box-shadow 80ms ease',
+            }}
+          >
+            <span
+              className="font-semibold text-white text-xl select-none text-center leading-tight"
+              style={{ letterSpacing: '-0.01em' }}
+            >
+              {listening ? 'Listening…' : 'Hold to Speak'}
             </span>
-          ) : (
-            <MicIcon />
-          )}
+          </div>
         </button>
       </div>
-
-      <button
-        onClick={() => onComplete(transcript)}
-        disabled={!hasSpeech}
-        className={`w-full max-w-xs py-4 rounded-2xl text-base font-semibold transition-all duration-300 ${
-          hasSpeech
-            ? 'bg-stone-800 text-stone-50 active:scale-95'
-            : 'bg-stone-200 text-stone-400 cursor-not-allowed'
-        }`}
-      >
-        {buttonLabel}
-      </button>
     </div>
-  )
-}
-
-function MicIcon() {
-  return (
-    <svg
-      width="28"
-      height="28"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="9" y="2" width="6" height="11" rx="3" />
-      <path d="M5 10a7 7 0 0 0 14 0" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-      <line x1="9" y1="21" x2="15" y2="21" />
-    </svg>
   )
 }
