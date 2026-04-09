@@ -13,7 +13,6 @@ type Screen = 'home' | 'step1' | 'step2' | 'step3' | 'step4'
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home')
-  const [intention, setIntention] = useState('')
 
   const goTo = (next: Screen) => setScreen(next)
 
@@ -27,21 +26,15 @@ export default function Home() {
     goTo('step2')
   }
 
-  const handleStep2Done = (_transcript: string) => {
+  const handleStep2Done = () => {
     trackEvent('step_completed', 2)
     goTo('step3')
   }
 
-  const handleStep3Done = (transcript: string) => {
-    setIntention(transcript)
+  const handleStep3Done = () => {
     trackEvent('step_completed', 3)
     trackEvent('exercise_completed')
     goTo('step4')
-  }
-
-  const handleRestart = () => {
-    setIntention('')
-    goTo('home')
   }
 
   return (
@@ -79,7 +72,7 @@ export default function Home() {
       </ScreenSlide>
 
       <ScreenSlide visible={screen === 'step4'}>
-        <StepFour intention={intention} onRestart={handleRestart} />
+        <StepFour />
       </ScreenSlide>
     </main>
   )

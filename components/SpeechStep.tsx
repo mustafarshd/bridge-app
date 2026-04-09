@@ -1,48 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-
-interface ISpeechRecognition extends EventTarget {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  start(): void
-  stop(): void
-  onresult: ((event: ISpeechRecognitionEvent) => void) | null
-  onend: (() => void) | null
-  onerror: (() => void) | null
-}
-
-interface ISpeechRecognitionEvent {
-  results: ISpeechRecognitionResultList
-}
-
-interface ISpeechRecognitionResultList {
-  length: number
-  [index: number]: ISpeechRecognitionResult
-}
-
-interface ISpeechRecognitionResult {
-  [index: number]: ISpeechRecognitionAlternative
-}
-
-interface ISpeechRecognitionAlternative {
-  transcript: string
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => ISpeechRecognition
-    webkitSpeechRecognition?: new () => ISpeechRecognition
-  }
-}
+import { useState } from 'react'
 
 interface SpeechStepProps {
   stepNumber: number
   totalSteps: number
   heading: string
   buttonLabel: string
-  onComplete: (transcript: string) => void
+  onComplete: () => void
 }
 
 export default function SpeechStep({
@@ -52,63 +17,17 @@ export default function SpeechStep({
   onComplete,
 }: SpeechStepProps) {
   const [listening, setListening] = useState(false)
-  const [transcript, setTranscript] = useState('')
   const [pressed, setPressed] = useState(false)
-  const recognitionRef = useRef<ISpeechRecognition | null>(null)
-  const transcriptRef = useRef('')
-
-  const stopListening = useCallback(() => {
-    recognitionRef.current?.stop()
-    setListening(false)
-  }, [])
-
-  const startListening = useCallback(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      alert('Speech recognition is not supported in this browser. Try Chrome.')
-      return
-    }
-
-    transcriptRef.current = ''
-    setTranscript('')
-
-    const recognition = new SR()
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognition.lang = 'en-US'
-
-    recognition.onresult = (event: ISpeechRecognitionEvent) => {
-      let full = ''
-      for (let i = 0; i < event.results.length; i++) {
-        full += event.results[i][0].transcript
-      }
-      transcriptRef.current = full
-      setTranscript(full)
-    }
-
-    recognition.onend = () => setListening(false)
-    recognition.onerror = () => setListening(false)
-
-    recognitionRef.current = recognition
-    recognition.start()
-    setListening(true)
-  }, [])
-
-  useEffect(() => {
-    return () => { recognitionRef.current?.stop() }
-  }, [])
 
   const handlePointerDown = () => {
     setPressed(true)
-    startListening()
+    setListening(true)
   }
 
   const handlePointerUp = () => {
     setPressed(false)
-    stopListening()
-    if (transcriptRef.current.trim().length > 0) {
-      onComplete(transcriptRef.current)
-    }
+    setListening(false)
+    onComplete()
   }
 
   const handlePointerLeave = () => {
@@ -136,7 +55,10 @@ export default function SpeechStep({
 
       {/* Header */}
       <div className="relative z-10 flex flex-col items-center text-center px-5 pt-20 gap-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[rgba(34,21,9,0.45)]">
+        <p
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: 'rgba(34,21,9,0.45)' }}
+        >
           Step {stepNumber} of {totalSteps}
         </p>
         <h1
@@ -152,30 +74,10 @@ export default function SpeechStep({
         className="relative z-10 text-center font-medium text-base px-10 mt-4 leading-relaxed"
         style={{ color: 'rgba(34,21,9,0.8)' }}
       >
-        Hold on to the button to start talking. Let it go to put your words out
-        into the world.
+        {listening
+          ? 'Keep going…'
+          : 'Hold on to the button to start talking. Let it go when you\u2019re done.'}
       </p>
-
-      {/* Transcript */}
-      {transcript && (
-        <div className="relative z-10 mx-6 mt-6 w-[calc(100%-3rem)] rounded-2xl bg-white/50 px-5 py-4">
-          <p
-            className="text-base leading-relaxed"
-            style={{ color: '#221509' }}
-          >
-            {transcript}
-          </p>
-        </div>
-      )}
-
-      {!transcript && listening && (
-        <p
-          className="relative z-10 mt-6 text-sm font-medium"
-          style={{ color: 'rgba(34,21,9,0.5)' }}
-        >
-          Listening…
-        </p>
-      )}
 
       {/* 3D Hold button */}
       <div className="absolute bottom-24 flex flex-col items-center">
@@ -185,7 +87,7 @@ export default function SpeechStep({
           onPointerLeave={handlePointerLeave}
           className="relative select-none touch-none outline-none"
           style={{ width: 230, height: 230 }}
-          aria-label={listening ? 'Release to submit' : 'Hold to speak'}
+          aria-label={listening ? 'Release when done' : 'Hold to speak'}
         >
           {/* Back shadow layer */}
           <div
