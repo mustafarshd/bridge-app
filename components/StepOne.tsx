@@ -7,20 +7,22 @@ interface StepOneProps {
   onComplete: () => void
 }
 
-// ~5 seconds of continuous walking at 60Hz
-const MOVEMENT_GOAL = 300
 const MOVEMENT_THRESHOLD = 0.9
-
 type Status = 'needs-permission' | 'listening' | 'unsupported' | 'denied'
 
 export default function StepOne({ onComplete }: StepOneProps) {
   const [status, setStatus] = useState<Status>('listening')
-  const [moved, setMoved] = useState(false)
+  const [countdown, setCountdown] = useState(5)
   const handlerRef = useRef<((e: DeviceMotionEvent) => void) | null>(null)
   const scoreRef = useRef(0)
 
-  const canBypass = status === 'unsupported' || status === 'denied'
-  const ready = moved || canBypass
+  useEffect(() => {
+    if (countdown <= 0) return
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown])
+
+  const ready = countdown === 0
 
   const startListening = () => {
     const handler = (e: DeviceMotionEvent) => {
@@ -33,10 +35,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
         const raw = Math.sqrt((ag.x ?? 0) ** 2 + (ag.y ?? 0) ** 2 + (ag.z ?? 0) ** 2)
         mag = Math.abs(raw - 9.81)
       }
-      if (mag > MOVEMENT_THRESHOLD) {
-        scoreRef.current += 1
-        if (scoreRef.current >= MOVEMENT_GOAL) setMoved(true)
-      }
+      if (mag > MOVEMENT_THRESHOLD) scoreRef.current += 1
     }
     handlerRef.current = handler
     window.addEventListener('devicemotion', handler)
@@ -88,7 +87,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
           Shift your state. Walk around for a bit.
         </h1>
         <p className="text-base" style={{ color: 'rgba(34,21,9,0.6)' }}>
-          {moved ? "You're moving — tap when ready." : 'Come back when you\'re ready.'}
+          Come back when you&apos;re ready.
         </p>
       </div>
 
@@ -102,29 +101,18 @@ export default function StepOne({ onComplete }: StepOneProps) {
             Allow motion sensor
           </button>
         ) : (
-          <>
-            <button
-              onClick={onComplete}
-              disabled={!ready}
-              className="w-full py-4 rounded-2xl text-base font-semibold transition-all duration-300 active:scale-95"
-              style={
-                ready
-                  ? { background: '#F16C13', color: '#fff' }
-                  : { background: 'rgba(241,108,19,0.25)', color: 'rgba(34,21,9,0.35)', cursor: 'not-allowed' }
-              }
-            >
-              I&apos;m up
-            </button>
-            {status === 'listening' && !moved && (
-              <button
-                onClick={onComplete}
-                className="text-sm underline underline-offset-2"
-                style={{ color: 'rgba(34,21,9,0.45)' }}
-              >
-                I don&apos;t have a gyroscope
-              </button>
-            )}
-          </>
+          <button
+            onClick={onComplete}
+            disabled={!ready}
+            className="w-full py-4 rounded-2xl text-base font-semibold transition-all duration-300 active:scale-95"
+            style={
+              ready
+                ? { background: '#F16C13', color: '#fff' }
+                : { background: 'rgba(241,108,19,0.25)', color: 'rgba(34,21,9,0.35)', cursor: 'not-allowed' }
+            }
+          >
+            {ready ? "I'm up" : `I'm up in ${countdown}`}
+          </button>
         )}
       </div>
     </div>
