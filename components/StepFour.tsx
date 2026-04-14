@@ -1,27 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PulsingCircle from '@/components/PulsingCircle'
 
 export default function StepFour() {
-  const [showManual, setShowManual] = useState(false)
+  const [countdown, setCountdown] = useState<number | null>(null)
 
-  const handleClose = () => {
-    window.close()
-    // If still open after a tick, the browser blocked it — show fallback
-    setTimeout(() => setShowManual(true), 300)
-  }
+  useEffect(() => {
+    if (countdown === null) return
+    if (countdown === 0) {
+      window.close()
+      return
+    }
+    const t = setTimeout(() => setCountdown((c) => (c !== null ? c - 1 : null)), 1000)
+    return () => clearTimeout(t)
+  }, [countdown])
+
+  const handleClose = () => setCountdown(3)
 
   return (
     <div
-      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      className="relative flex flex-col items-center h-dvh w-full px-6 py-10 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
       <PulsingCircle />
 
+      {/* Closing overlay */}
+      {countdown !== null && (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4"
+          style={{ background: 'rgba(245,219,200,0.85)', backdropFilter: 'blur(8px)' }}
+        >
+          <p className="text-lg font-medium" style={{ color: 'rgba(34,21,9,0.6)' }}>
+            This tab is closing in
+          </p>
+          <span className="text-8xl font-bold" style={{ color: '#F16C13' }}>
+            {countdown === 0 ? '' : countdown}
+          </span>
+        </div>
+      )}
+
       <div />
 
-      <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+      <div className="relative z-10 flex flex-col items-center gap-6 text-center flex-1 justify-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center"
           style={{ background: '#F16C13' }}
@@ -40,20 +61,14 @@ export default function StepFour() {
         </p>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
-        {showManual ? (
-          <p className="text-center text-base font-medium" style={{ color: 'rgba(34,21,9,0.6)' }}>
-            Close this tab to finish.
-          </p>
-        ) : (
-          <button
-            onClick={handleClose}
-            className="w-full py-4 rounded-2xl text-base font-semibold active:scale-95 transition-transform duration-150"
-            style={{ background: '#F16C13', color: '#fff' }}
-          >
-            Let&apos;s go
-          </button>
-        )}
+      <div className="relative z-10 w-full max-w-xs pb-6">
+        <button
+          onClick={handleClose}
+          className="w-full py-4 rounded-2xl text-base font-semibold active:scale-95 transition-transform duration-150"
+          style={{ background: '#F16C13', color: '#fff' }}
+        >
+          Let&apos;s go
+        </button>
       </div>
     </div>
   )
