@@ -6,20 +6,16 @@ interface StepOneProps {
   onComplete: () => void
 }
 
-const MOVEMENT_GOAL = 300
 const MOVEMENT_THRESHOLD = 0.9
-
 type Status = 'needs-permission' | 'listening' | 'unsupported' | 'denied'
 
 export default function StepOne({ onComplete }: StepOneProps) {
   const [status, setStatus] = useState<Status>('listening')
   const handlerRef = useRef<((e: DeviceMotionEvent) => void) | null>(null)
   const scoreRef = useRef(0)
-  const [moved, setMoved] = useState(false)
 
   const startListening = () => {
     const handler = (e: DeviceMotionEvent) => {
-      if (moved) return
       const a = e.acceleration
       const ag = e.accelerationIncludingGravity
       let mag = 0
@@ -29,10 +25,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
         const raw = Math.sqrt((ag.x ?? 0) ** 2 + (ag.y ?? 0) ** 2 + (ag.z ?? 0) ** 2)
         mag = Math.abs(raw - 9.81)
       }
-      if (mag > MOVEMENT_THRESHOLD) {
-        scoreRef.current += 1
-        if (scoreRef.current >= MOVEMENT_GOAL) setMoved(true)
-      }
+      if (mag > MOVEMENT_THRESHOLD) scoreRef.current += 1
     }
     handlerRef.current = handler
     window.addEventListener('devicemotion', handler)
@@ -68,56 +61,61 @@ export default function StepOne({ onComplete }: StepOneProps) {
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center h-dvh w-full px-6 gap-10"
-      style={{ background: '#130803' }}
+      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      style={{ background: '#F5DBC8' }}
     >
-      {/* Blur layers */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-        <div style={{
-          position: 'absolute', top: '-10%', right: '-20%',
-          width: '70vw', height: '70vw', borderRadius: '50%',
-          background: '#C84010', opacity: 0.3, filter: 'blur(90px)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '5%', left: '-20%',
-          width: '60vw', height: '60vw', borderRadius: '50%',
-          background: '#8B2808', opacity: 0.3, filter: 'blur(80px)',
-        }} />
-      </div>
+      {/* Pulsing orange circle */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: '#F16C13',
+          filter: 'blur(72px)',
+          animationName: 'pulse-glow',
+          animationDuration: '2.4s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      />
 
-      <div className="relative z-10 flex flex-col items-center gap-3 text-center">
-        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(245,237,224,0.4)' }}>
+      <div className="relative z-10 flex flex-col items-center gap-3 text-center pt-6">
+        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
           Step 1 of 4
         </p>
-        <h1 className="text-3xl font-semibold leading-snug max-w-xs" style={{ color: '#F5EDE0' }}>
+        <h1 className="text-3xl font-semibold leading-snug max-w-xs" style={{ color: '#221509' }}>
           Shift your state. Walk around for a bit.
         </h1>
-        <p className="text-base" style={{ color: 'rgba(245,237,224,0.55)' }}>
+        <p className="text-base" style={{ color: 'rgba(34,21,9,0.6)' }}>
           Come back when you&apos;re ready.
         </p>
       </div>
 
-      {status === 'needs-permission' && (
-        <button
-          onClick={requestPermission}
-          className="relative z-10 px-6 py-3 rounded-2xl text-base font-semibold"
-          style={{ background: '#C84010', color: '#F5EDE0' }}
-        >
-          Allow motion sensor
-        </button>
-      )}
-
-      {status !== 'needs-permission' && (
-        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
+      <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
+        {status === 'needs-permission' && (
+          <button
+            onClick={requestPermission}
+            className="w-full py-4 rounded-2xl text-base font-semibold"
+            style={{ background: '#F16C13', color: '#fff' }}
+          >
+            Allow motion sensor
+          </button>
+        )}
+        {status !== 'needs-permission' && (
           <button
             onClick={onComplete}
             className="w-full py-4 rounded-2xl text-base font-semibold active:scale-95 transition-transform duration-150"
-            style={{ background: '#C84010', color: '#F5EDE0' }}
+            style={{ background: '#F16C13', color: '#fff' }}
           >
             I&apos;m up
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

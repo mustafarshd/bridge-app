@@ -1,13 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import StepOne from '@/components/StepOne'
 import SpeechStep from '@/components/SpeechStep'
 import StepFour from '@/components/StepFour'
 import { trackEvent } from '@/lib/track'
-
-const RiveAnimation = dynamic(() => import('@/components/RiveAnimation'), { ssr: false })
 
 type Screen = 'home' | 'step1' | 'step2' | 'step3' | 'step4'
 
@@ -38,7 +35,10 @@ export default function Home() {
   }
 
   return (
-    <main className="relative h-dvh w-full max-w-[430px] mx-auto overflow-hidden" style={{ background: '#130803' }}>
+    <main
+      className="relative h-dvh w-full max-w-[430px] mx-auto overflow-hidden"
+      style={{ background: '#F5DBC8' }}
+    >
       <Fade visible={screen === 'home'}>
         <HomeScreen onStart={handleStart} />
       </Fade>
@@ -84,49 +84,49 @@ function Fade({ visible, children }: { visible: boolean; children: React.ReactNo
   )
 }
 
-function OrangeBlurs() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-      <div style={{
-        position: 'absolute', top: '-15%', left: '-20%',
-        width: '75vw', height: '75vw', borderRadius: '50%',
-        background: '#C84010', opacity: 0.28, filter: 'blur(90px)',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '-5%', right: '-15%',
-        width: '65vw', height: '65vw', borderRadius: '50%',
-        background: '#8B2808', opacity: 0.35, filter: 'blur(80px)',
-      }} />
-    </div>
-  )
-}
-
 function HomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <div className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14">
-      <OrangeBlurs />
+    <div
+      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      style={{ background: '#F5DBC8' }}
+    >
+      {/* Pulsing orange circle */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: 340,
+          height: 340,
+          borderRadius: '50%',
+          background: '#F16C13',
+          filter: 'blur(72px)',
+          animationName: 'pulse-glow',
+          animationDuration: '2.8s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      />
 
       <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-6">
-        <h1 className="text-5xl font-semibold tracking-tight" style={{ color: '#F5EDE0' }}>
+        <h1 className="text-5xl font-semibold tracking-tight" style={{ color: '#221509' }}>
           Bridge
         </h1>
-        <p className="text-base font-light max-w-[220px] leading-relaxed" style={{ color: 'rgba(245,237,224,0.55)' }}>
+        <p className="text-base font-light max-w-[220px] leading-relaxed" style={{ color: 'rgba(34,21,9,0.6)' }}>
           A short exercise to shift your state and get moving.
         </p>
       </div>
 
-      <div className="relative z-10 w-full flex items-center justify-center">
-        <RiveAnimation className="w-64 h-64" />
-      </div>
-
       <div className="relative z-10 flex flex-col items-center gap-4 w-full">
-        <p className="text-sm text-center" style={{ color: 'rgba(245,237,224,0.4)' }}>
+        <p className="text-sm text-center" style={{ color: 'rgba(34,21,9,0.45)' }}>
           About 2 minutes. No account needed.
         </p>
         <button
           onClick={onStart}
           className="w-full max-w-xs py-4 rounded-2xl text-base font-semibold active:scale-95 transition-transform duration-150"
-          style={{ background: '#C84010', color: '#F5EDE0' }}
+          style={{ background: '#F16C13', color: '#fff' }}
         >
           Start
         </button>
@@ -134,5 +134,3 @@ function HomeScreen({ onStart }: { onStart: () => void }) {
     </div>
   )
 }
-
-export { OrangeBlurs }

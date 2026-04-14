@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface SpeechStepProps {
   stepNumber: number
@@ -10,111 +10,67 @@ interface SpeechStepProps {
 }
 
 export default function SpeechStep({ stepNumber, totalSteps, heading, onComplete }: SpeechStepProps) {
-  const [listening, setListening] = useState(false)
-  const [pressed, setPressed] = useState(false)
+  const [countdown, setCountdown] = useState(5)
 
-  const handlePointerDown = () => {
-    setPressed(true)
-    setListening(true)
-  }
+  useEffect(() => {
+    if (countdown <= 0) return
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown])
 
-  const handlePointerUp = () => {
-    setPressed(false)
-    setListening(false)
-    onComplete()
-  }
-
-  const handlePointerLeave = () => {
-    if (pressed) handlePointerUp()
-  }
+  const ready = countdown === 0
 
   return (
     <div
-      className="relative flex flex-col items-center h-dvh w-full overflow-hidden"
-      style={{ background: '#130803' }}
+      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      style={{ background: '#F5DBC8' }}
     >
-      {/* Blur layers */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-        <div style={{
-          position: 'absolute', top: '-15%', left: '-20%',
-          width: '80vw', height: '80vw', borderRadius: '50%',
-          background: '#C84010', opacity: 0.25, filter: 'blur(100px)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '10%', right: '-15%',
-          width: '65vw', height: '65vw', borderRadius: '50%',
-          background: '#8B2808', opacity: 0.35, filter: 'blur(80px)',
-        }} />
-        {/* Extra glow behind button */}
-        <div style={{
-          position: 'absolute', bottom: '12%', left: '50%',
-          transform: 'translateX(-50%)',
-          width: '55vw', height: '55vw', borderRadius: '50%',
-          background: '#E05010', opacity: 0.2, filter: 'blur(60px)',
-        }} />
-      </div>
+      {/* Pulsing orange circle */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: '#F16C13',
+          filter: 'blur(72px)',
+          animationName: 'pulse-glow',
+          animationDuration: '2.4s',
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          pointerEvents: 'none',
+        }}
+        aria-hidden
+      />
 
       {/* Header */}
-      <div className="relative z-10 flex flex-col items-center text-center px-5 pt-20 gap-3">
-        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(245,237,224,0.4)' }}>
+      <div className="relative z-10 flex flex-col items-center text-center gap-3 pt-6">
+        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
           Step {stepNumber} of {totalSteps}
         </p>
-        <h1 className="font-semibold leading-tight" style={{ color: '#F5EDE0', fontSize: 34 }}>
+        <h1 className="font-semibold leading-tight text-[34px]" style={{ color: '#221509' }}>
           {heading}
         </h1>
+        <p className="text-base" style={{ color: 'rgba(34,21,9,0.6)' }}>
+          Take as much time as you need.
+        </p>
       </div>
 
-      {/* Instruction */}
-      <p
-        className="relative z-10 text-center font-medium text-base px-10 mt-5 leading-relaxed"
-        style={{ color: 'rgba(245,237,224,0.55)' }}
-      >
-        {listening
-          ? 'Keep going\u2026'
-          : 'Hold the button to speak. Release when done.'}
-      </p>
-
-      {/* 3D Hold button */}
-      <div className="absolute bottom-24 flex flex-col items-center">
+      {/* Continue button */}
+      <div className="relative z-10 w-full max-w-xs flex flex-col items-center gap-2">
         <button
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerLeave}
-          className="relative select-none touch-none outline-none"
-          style={{ width: 230, height: 230 }}
-          aria-label={listening ? 'Release when done' : 'Hold to speak'}
+          onClick={onComplete}
+          disabled={!ready}
+          className="w-full py-4 rounded-2xl text-base font-semibold transition-all duration-300 active:scale-95"
+          style={
+            ready
+              ? { background: '#F16C13', color: '#fff' }
+              : { background: 'rgba(241,108,19,0.25)', color: 'rgba(34,21,9,0.35)', cursor: 'not-allowed' }
+          }
         >
-          {/* Shadow layer */}
-          <div style={{
-            position: 'absolute',
-            width: 220, height: 220,
-            left: 5,
-            top: pressed ? 14 : 20,
-            borderRadius: '50%',
-            background: '#6B1E04',
-            filter: 'blur(4px)',
-            opacity: 0.8,
-            transition: 'top 80ms ease',
-          }} />
-          {/* Front face */}
-          <div
-            className="absolute inset-0 rounded-full flex items-center justify-center"
-            style={{
-              transform: pressed ? 'translateY(6px)' : 'translateY(0)',
-              background: 'radial-gradient(circle at 38% 32%, #F07030 0%, #C84010 55%, #9B2E06 100%)',
-              boxShadow: pressed
-                ? '0 2px 12px rgba(200,64,16,0.4)'
-                : '0 12px 32px rgba(200,64,16,0.45)',
-              transition: 'transform 80ms ease, box-shadow 80ms ease',
-            }}
-          >
-            <span
-              className="font-semibold text-xl select-none text-center leading-tight"
-              style={{ color: '#F5EDE0', letterSpacing: '-0.01em' }}
-            >
-              {listening ? 'Listening\u2026' : 'Hold to Speak'}
-            </span>
-          </div>
+          {ready ? 'Continue' : `Continue in ${countdown}`}
         </button>
       </div>
     </div>
