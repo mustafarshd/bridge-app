@@ -61,7 +61,7 @@ export default function Home() {
           <SpeechStep
             stepNumber={3}
             totalSteps={4}
-            heading="Say out loud what you have to do next."
+            heading="What do you have to do next? Say it out loud."
             onComplete={handleStep3Done}
           />
         )}
