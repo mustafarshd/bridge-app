@@ -71,15 +71,18 @@ export default function StepOne({ onComplete }: StepOneProps) {
 
   return (
     <div
-      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      className="relative flex flex-col items-center h-dvh w-full px-6 py-10 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
       <PulsingCircle />
 
-      <div className="relative z-10 flex flex-col items-center gap-3 text-center pt-6">
-        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
-          Step 1 of 4
-        </p>
+      {/* Step counter — pinned to top */}
+      <p className="relative z-10 text-xs font-semibold tracking-widest uppercase pt-6" style={{ color: 'rgba(34,21,9,0.45)' }}>
+        Step 1 of 4
+      </p>
+
+      {/* Centered text */}
+      <div className="relative z-10 flex flex-col items-center gap-3 text-center flex-1 justify-center">
         <h1 className="text-3xl font-semibold leading-snug max-w-xs" style={{ color: '#221509' }}>
           Shift your state. Walk around for a bit.
         </h1>
@@ -88,7 +91,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
         </p>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
+      <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs pb-6">
         {status === 'needs-permission' ? (
           <button
             onClick={requestPermission}

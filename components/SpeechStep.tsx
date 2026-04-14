@@ -28,11 +28,13 @@ export default function SpeechStep({ stepNumber, totalSteps, heading, onComplete
     >
       <PulsingCircle />
 
+      {/* Step counter — pinned to top */}
+      <p className="relative z-10 text-xs font-semibold tracking-widest uppercase pt-6" style={{ color: 'rgba(34,21,9,0.45)' }}>
+        Step {stepNumber} of {totalSteps}
+      </p>
+
       {/* Centered text */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center gap-3 flex-1">
-        <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
-          Step {stepNumber} of {totalSteps}
-        </p>
         <h1 className="font-semibold leading-tight text-[34px]" style={{ color: '#221509' }}>
           {heading}
         </h1>
