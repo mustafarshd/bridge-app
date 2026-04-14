@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import PulsingCircle from '@/components/PulsingCircle'
 import StepOne from '@/components/StepOne'
 import SpeechStep from '@/components/SpeechStep'
 import StepFour from '@/components/StepFour'
@@ -90,25 +91,7 @@ function HomeScreen({ onStart }: { onStart: () => void }) {
       className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
-      {/* Pulsing orange circle */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 340,
-          height: 340,
-          borderRadius: '50%',
-          background: '#F16C13',
-          filter: 'blur(72px)',
-          animationName: 'pulse-glow',
-          animationDuration: '2.8s',
-          animationTimingFunction: 'ease-in-out',
-          animationIterationCount: 'infinite',
-          pointerEvents: 'none',
-        }}
-        aria-hidden
-      />
+      <PulsingCircle />
 
       <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-6">
         <h1 className="text-5xl font-semibold tracking-tight" style={{ color: '#221509' }}>

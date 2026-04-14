@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import PulsingCircle from '@/components/PulsingCircle'
 
 interface StepOneProps {
   onComplete: () => void
@@ -11,8 +12,17 @@ type Status = 'needs-permission' | 'listening' | 'unsupported' | 'denied'
 
 export default function StepOne({ onComplete }: StepOneProps) {
   const [status, setStatus] = useState<Status>('listening')
+  const [countdown, setCountdown] = useState(5)
   const handlerRef = useRef<((e: DeviceMotionEvent) => void) | null>(null)
   const scoreRef = useRef(0)
+
+  useEffect(() => {
+    if (countdown <= 0) return
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown])
+
+  const ready = countdown === 0
 
   const startListening = () => {
     const handler = (e: DeviceMotionEvent) => {
@@ -64,25 +74,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
       className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
-      {/* Pulsing orange circle */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 320,
-          height: 320,
-          borderRadius: '50%',
-          background: '#F16C13',
-          filter: 'blur(72px)',
-          animationName: 'pulse-glow',
-          animationDuration: '2.4s',
-          animationTimingFunction: 'ease-in-out',
-          animationIterationCount: 'infinite',
-          pointerEvents: 'none',
-        }}
-        aria-hidden
-      />
+      <PulsingCircle />
 
       <div className="relative z-10 flex flex-col items-center gap-3 text-center pt-6">
         <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
@@ -97,7 +89,7 @@ export default function StepOne({ onComplete }: StepOneProps) {
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
-        {status === 'needs-permission' && (
+        {status === 'needs-permission' ? (
           <button
             onClick={requestPermission}
             className="w-full py-4 rounded-2xl text-base font-semibold"
@@ -105,14 +97,18 @@ export default function StepOne({ onComplete }: StepOneProps) {
           >
             Allow motion sensor
           </button>
-        )}
-        {status !== 'needs-permission' && (
+        ) : (
           <button
             onClick={onComplete}
-            className="w-full py-4 rounded-2xl text-base font-semibold active:scale-95 transition-transform duration-150"
-            style={{ background: '#F16C13', color: '#fff' }}
+            disabled={!ready}
+            className="w-full py-4 rounded-2xl text-base font-semibold transition-all duration-300 active:scale-95"
+            style={
+              ready
+                ? { background: '#F16C13', color: '#fff' }
+                : { background: 'rgba(241,108,19,0.25)', color: 'rgba(34,21,9,0.35)', cursor: 'not-allowed' }
+            }
           >
-            I&apos;m up
+            {ready ? "I'm up" : `I'm up in ${countdown}`}
           </button>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import PulsingCircle from '@/components/PulsingCircle'
 
 interface SpeechStepProps {
   stepNumber: number
@@ -25,25 +26,7 @@ export default function SpeechStep({ stepNumber, totalSteps, heading, onComplete
       className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
-      {/* Pulsing orange circle */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 320,
-          height: 320,
-          borderRadius: '50%',
-          background: '#F16C13',
-          filter: 'blur(72px)',
-          animationName: 'pulse-glow',
-          animationDuration: '2.4s',
-          animationTimingFunction: 'ease-in-out',
-          animationIterationCount: 'infinite',
-          pointerEvents: 'none',
-        }}
-        aria-hidden
-      />
+      <PulsingCircle />
 
       {/* Header */}
       <div className="relative z-10 flex flex-col items-center text-center gap-3 pt-6">
