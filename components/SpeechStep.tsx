@@ -23,13 +23,13 @@ export default function SpeechStep({ stepNumber, totalSteps, heading, onComplete
 
   return (
     <div
-      className="relative flex flex-col items-center justify-between h-dvh w-full px-6 py-14 overflow-hidden"
+      className="relative flex flex-col items-center h-dvh w-full px-6 py-10 overflow-hidden"
       style={{ background: '#F5DBC8' }}
     >
       <PulsingCircle />
 
-      {/* Header */}
-      <div className="relative z-10 flex flex-col items-center text-center gap-3 pt-6">
+      {/* Centered text */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center gap-3 flex-1">
         <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(34,21,9,0.45)' }}>
           Step {stepNumber} of {totalSteps}
         </p>
@@ -42,7 +42,7 @@ export default function SpeechStep({ stepNumber, totalSteps, heading, onComplete
       </div>
 
       {/* Continue button */}
-      <div className="relative z-10 w-full max-w-xs flex flex-col items-center gap-2">
+      <div className="relative z-10 w-full max-w-xs flex flex-col items-center gap-2 pb-6">
         <button
           onClick={onComplete}
           disabled={!ready}
